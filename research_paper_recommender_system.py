@@ -21,11 +21,10 @@ def load_data():
 
     # Prepare tags
     df['summary'] = df['summary'].apply(lambda x: x.split())
-    df['tags'] = df['summary'] + df['tag'] + df['author']
-
-    # Final DataFrame
-    df['tags'] = df['tags'].apply(lambda x: " ".join(x))
     
+    # ✅ Convert lists to strings before caching
+    df['tags'] = df.apply(lambda row: " ".join(row['summary'] + row['tag'] + row['author']), axis=1)
+
     # Stemming
     ps = PorterStemmer()
     df['tags'] = df['tags'].apply(lambda text: " ".join([ps.stem(i) for i in text.split()]))
