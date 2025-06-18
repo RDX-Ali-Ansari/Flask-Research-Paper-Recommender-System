@@ -5,13 +5,12 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from nltk.stem.porter import PorterStemmer
 
-# ----- Load Data -----
 @st.cache_data
 def load_data():
     df = pd.read_json("arxivData.json")
     df.drop(columns=['day', 'month', 'year'], inplace=True)
 
-    # Convert JSON-style text fields to lists
+    # Convert JSON fields to lists
     df['author'] = df['author'].apply(lambda x: [i['name'] for i in ast.literal_eval(x)])
     df['tag'] = df['tag'].apply(lambda x: [i['term'] for i in ast.literal_eval(x)])
     df['link'] = df['link'].apply(lambda x: ast.literal_eval(x)[0]['href'] if pd.notnull(x) else "")
@@ -21,15 +20,14 @@ def load_data():
 
     # Prepare tags
     df['summary'] = df['summary'].apply(lambda x: x.split())
-    
-    # ✅ Convert lists to strings before caching
     df['tags'] = df.apply(lambda row: " ".join(row['summary'] + row['tag'] + row['author']), axis=1)
 
     # Stemming
     ps = PorterStemmer()
     df['tags'] = df['tags'].apply(lambda text: " ".join([ps.stem(i) for i in text.split()]))
 
-    return df
+    # ✅ Return only safe columns
+    return df[['title', 'link', 'tags']]
 
 # ----- Create Vectors & Similarity Matrix -----
 @st.cache_resource
